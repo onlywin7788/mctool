@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"os"
 	log "bits/modules/common/log"
 	util "bits/modules/util"
@@ -22,21 +23,34 @@ func (serviceMain ServiceMain) Execute() bool{
 	args := os.Args[1:]
 	argsParser.Parser(args)
 
-	if argsParser.DEBUG_SERVER == 1 {
-		commander.DebugServerListen()
-	}
+	if argsParser.HELP == 1{
 
-	if argsParser.CHECK == 1 {
+		printHELP()
+
+	}else if argsParser.DEBUG_SERVER == 1 {
+
+		commander.DebugServerListen(argsParser.DEBUG_SERVER_PORT)
+
+	}else if argsParser.CHECK == 1 {
 
 		if argsParser.SYSTEM_CHECK == 1 {
-			CheckSystem(argsParser.DEBUG_CLIENT)
+			CheckSystem(argsParser.DEBUG_CLIENT, argsParser.DEBUG_CLIENT_ADDR)
 		}
 		if argsParser.FIREWALL_CHECK == 1 {
 			CheckFirewall(argsParser.FIREWALL_ADDR)
 		}
-	}
 
-	if argsParser.TEMPLATE == 1 {
+	}else if argsParser.TEMPLATE == 1 {
+	
+		PrintTemplate()
+	
+	}else if argsParser.DUMMYSERVER == 1 {
+
+		ListenDummyServer(argsParser.DUMMYSERVER_PORT)
+
+	}else{
+
+		logger.BasicPrint("\nInvalid Execute paramter. Please check with '-help'\n")
 
 	}
 
@@ -44,7 +58,7 @@ func (serviceMain ServiceMain) Execute() bool{
 }
 
 
-func CheckSystem(debug_client int) bool{
+func CheckSystem(debug_client int, debug_addr string) bool{
 	
 	logger := log.CommonLogger{}
 	logger.Dummy()
@@ -53,7 +67,7 @@ func CheckSystem(debug_client int) bool{
 
 	logger.Info("system checking")
 
-	flag, errMsg := systemChecker.Check(debug_client)
+	flag, errMsg := systemChecker.Execute(debug_client, debug_addr)
 
 	if flag == false{
 		logger.Error(errMsg)
@@ -68,7 +82,7 @@ func CheckFirewall(addr string) bool{
 
 	logger.Info("firewall checking : " + addr)
 		
-	flag, errMsg := firewallChecker.Check(addr)
+	flag, errMsg := firewallChecker.Execute(addr)
 
 	if flag == true{
 		logger.Info("Firewall opened.")
@@ -78,13 +92,35 @@ func CheckFirewall(addr string) bool{
 	return true
 }
 
-func priontTemplate(addr string) bool{
+func PrintTemplate() bool{
 	
 	logger := log.CommonLogger{}
-	firewallChecker := util.FirewallChecker{}
+	template := util.Template{}
 
 	logger.Info("Print Template Configuration")
+	template.Execute()
 
+	return true
+}
+
+func ListenDummyServer(port string) bool{
+
+	logger := log.CommonLogger{}
+	dummyServer := util.DummyServer{}
+
+	logger.Info("Dummy Server Listen - Port : " + port)
+	flag, errMsg := dummyServer.Execute(port)
+	if flag == false{
+		logger.Error(errMsg)
+	} 
+	return true
+}
+
+func printHELP() bool{
 	
+	argsParser := ArgsParser{}
+	content := argsParser.PrintHELP()
+	fmt.Println(content)
+
 	return true
 }

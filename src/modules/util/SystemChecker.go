@@ -26,7 +26,7 @@ type Command struct {
 }
 
 
-func (systemChecker SystemChecker) Check(debug_client int) (bool, string) {
+func (systemChecker SystemChecker) Execute(debug_client int, debug_addr string) (bool, string) {
 
 	logger := log.CommonLogger{}
 	commander := command.Commander{}
@@ -52,7 +52,7 @@ func (systemChecker SystemChecker) Check(debug_client int) (bool, string) {
 
 		logger.BasicPrint("|| " + command.desc + "  --------------------")
 		
-		flag, result := commander.Execute(command.command, debug_client)
+		flag, result := commander.Execute(command.command, debug_client, debug_addr)
 
 		if flag == true{
 			ParseResult(command.key, result)

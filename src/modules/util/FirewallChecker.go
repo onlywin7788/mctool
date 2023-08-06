@@ -8,7 +8,7 @@ type FirewallChecker struct {
 }
 
 
-func (firewallChecker FirewallChecker) Check(addr string) (bool, string) {
+func (firewallChecker FirewallChecker) Execute(addr string) (bool, string) {
 
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {

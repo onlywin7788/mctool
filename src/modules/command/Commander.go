@@ -12,13 +12,13 @@ import (
 type Commander struct {
 }
 
-func (commander *Commander) Execute(cmd string, debug int) (bool, string) {
+func (commander *Commander) Execute(cmd string, debug int, debug_addr string) (bool, string) {
 	
 	var result bool
 	var returnString string
 
 	if debug == 1 {
-		result,returnString = CallClient(cmd)
+		result,returnString = CallClient(cmd, debug_addr)
 	} else{
 		result,returnString = SendCommand(cmd)
 	}
@@ -59,10 +59,10 @@ func SendCommand(cmd string) (bool, string) {
 }
 
 
-func (commander Commander) DebugServerListen() {
+func (commander Commander) DebugServerListen(port string) {
 	
 	logger := log.CommonLogger{}
-	logger.Trace("Remote REST Debugger Server : 34972")
+	logger.Trace("Remote REST Debugger Server : " + port)
 
 	http.HandleFunc("/debug", func(rw http.ResponseWriter, r *http.Request) {
 		cmd := r.Header.Get("command")
@@ -71,14 +71,14 @@ func (commander Commander) DebugServerListen() {
 
 		rw.Write([]byte(output))
     })
-	http.ListenAndServe(":34972", nil)
+	http.ListenAndServe(":" + port, nil)
 }
 
-func CallClient(cmd string) (bool, string){
+func CallClient(cmd string, debug_addr string) (bool, string){
 	logger := log.CommonLogger{}
 	logger.Dummy()
 
-    req, err := http.NewRequest("GET", "http://10.10.19.157:34972/debug", nil)
+    req, err := http.NewRequest("GET", "http://" + debug_addr + "/debug", nil)
     if err != nil {
         panic(err)
     }

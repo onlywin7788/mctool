@@ -1,5 +1,10 @@
 package util
 
+import (
+	log "bits/modules/common/log"
+)
+
+
 type Template struct {
 }
 
@@ -13,31 +18,86 @@ func (template Template) Execute() bool {
 	logger := log.CommonLogger{}
 
 	templateST := []TemplateST{
-        {"EM_Response.ini",
-		 	`
-			 [EMProjectHeader]
-			 EMProject=1
-			 EMProjectEncryptPwd=0
-			 EMProjectDSSUser=Administrator
-			 EMProjectDSSPwd=
-			 EMProjectPkgFile=/sw/mstr/MicroStrategy/install/OOTB-EM.mmp
-			 EMProjectDSNName=MSTR_STAT
-			 EMProjectDSNUserName=mstr
-			 EMProjectDSNUserPwd=mstr
-			 EMProjectDSNPrefix=
-			`,
-		},
-		{"tomcat-users.xml",
-			`
-			<role rolename="admin"/>
-			<role rolename="manager"/>
-			<role rolename="mstrWebAdmin"/>
-			<user username="admin" password="admin" roles="admin,manager,mstrWebAdmin"/>
-		`,
-   		},
-   	}
+{
+"ALIAS Command",
+`
+## MSTR COMMAND
 
-	   for _, command := range TemplateST {
+MSTR_HOME=/home/mstr/MicroStrategy
+MSTR_LOG=/home/mstr/MicroStrategy/log
+export PATH=$PATH:$MSTR_HOME/bin
+
+alias cdmbin='cd $MSTR_HOME/bin'
+alias cdmlog='cd $MSTR_LOG'
+alias mlog='tail -100f $MSTR_LOG/DSSErrors.log'
+
+alias mgs='$MSTR_HOME/bin/mstrctl -s IntelligenceServer gs'
+alias mstop='$MSTR_HOME/bin/mstrctl -s IntelligenceServer stop'
+alias mterm='$MSTR_HOME/bin/mstrctl -s IntelligenceServer term'
+alias mstart='$MSTR_HOME/bin/mstrctl -s IntelligenceServer start'
+
+alias pdfgs='$MSTR_HOME/bin/mstrctl -s PDFExportService gs'
+alias pdfstop='$MSTR_HOME/install/Export/pdfexporter.sh stop'
+alias pdfstart='$MSTR_HOME/install/Export/pdfexporter.sh start'
+
+alias emgs='$MSTR_HOME/bin/mstrctl -s EMService gs'
+alias emstop='$MSTR_HOME/bin/mstrctl -s EMService stop'
+alias emstart='$MSTR_HOME/bin/mstrctl -s EMService start'
+`,
+},
+
+{
+"EM_Response.ini",
+`
+[EMProjectHeader]
+EMProject=1
+EMProjectEncryptPwd=0
+EMProjectDSSUser=Administrator
+EMProjectDSSPwd=
+EMProjectPkgFile=/sw/mstr/MicroStrategy/install/OOTB-EM.mmp
+EMProjectDSNName=MSTR_STAT
+EMProjectDSNUserName=mstr
+EMProjectDSNUserPwd=mstr
+EMProjectDSNPrefix=
+`,
+},
+
+{
+"tomcat-users.xml",
+`
+<role rolename="admin"/>
+<role rolename="manager"/>
+<role rolename="mstrWebAdmin"/>
+<user username="admin" password="admin" roles="admin,manager,mstrWebAdmin"/>
+`,
+},
+
+{
+"ODBC(MYSQL BASIC)",
+`
+[MYSQLDB]
+DriverUnicodeType=1
+Description=MySQL ODBC 5.x Driver
+PORT=3306
+DATABASE=MSTRDB
+CHARSET=utf8
+SERVER=XXX.XXX.XXX.XXX
+OPTION=2
+SOCKET=
+Driver=/home/mstr/mysql_odbc/mysql_odbc_8.0.21/lib/libmyodbc8w.so
+`,
+},
+
+}
+
+	   for _, template := range templateST {
+
+			logger.BasicPrint("----------------------")
+			logger.BasicPrint(template.key)
+			logger.BasicPrint("----------------------")
+			logger.BasicPrint(template.content)
+
+	   }
 
 	return true
 }
