@@ -7,12 +7,14 @@ import (
 
 
 type DummyServer struct {
+	logger *log.CommonLogger
 }
 
-func (dummyServer DummyServer) Execute(port string) (bool, string) {
+func (d DummyServer) Execute(port string) (bool, string) {
 
-	logger := log.CommonLogger{}
-	logger.Trace("Listen Dummy Server : " + port)
+	d.logger = log.GetLogger()
+
+	d.logger.Trace("Listen Dummy Server : " + port)
 	err := http.ListenAndServe(":" + port, nil)
 	if err != nil{
 		return false, err.Error()

@@ -10,23 +10,41 @@ import (
 )
 
 type Commander struct {
+	logger *log.CommonLogger
 }
 
-func (commander *Commander) Execute(cmd string, debug int, debug_addr string) (bool, string) {
-	
+func (c Commander) Execute(cmd string, debug int, debug_addr string) (bool, string) {
+
 	var result bool
 	var returnString string
+	c.logger = log.GetLogger()
 
 	if debug == 1 {
-		result,returnString = CallClient(cmd, debug_addr)
+		result,returnString = c.callClient(cmd, debug_addr)
 	} else{
-		result,returnString = SendCommand(cmd)
+		result,returnString = c.sendCommand(cmd)
 	}
 
 	return result, returnString
 }
 
-func SendCommand(cmd string) (bool, string) {
+func (c Commander) DebugServerListen(port string) {
+	
+	c.logger = log.GetLogger()
+
+	c.logger.Info("Remote REST Debugger Server Listen : " + port)
+
+	http.HandleFunc("/debug", func(rw http.ResponseWriter, r *http.Request) {
+		cmd := r.Header.Get("command")
+
+		_, output := c.sendCommand(cmd)
+
+		rw.Write([]byte(output))
+    })
+	http.ListenAndServe(":" + port, nil)
+}
+
+func (c Commander) sendCommand(cmd string) (bool, string) {
 
 	var returnVal = true
 	var returnError = ""
@@ -58,26 +76,8 @@ func SendCommand(cmd string) (bool, string) {
 	return returnVal, retunJson
 }
 
-
-func (commander Commander) DebugServerListen(port string) {
+func (c Commander)callClient(cmd string, debug_addr string) (bool, string){
 	
-	logger := log.CommonLogger{}
-	logger.Trace("Remote REST Debugger Server : " + port)
-
-	http.HandleFunc("/debug", func(rw http.ResponseWriter, r *http.Request) {
-		cmd := r.Header.Get("command")
-
-		_, output := SendCommand(cmd)
-
-		rw.Write([]byte(output))
-    })
-	http.ListenAndServe(":" + port, nil)
-}
-
-func CallClient(cmd string, debug_addr string) (bool, string){
-	logger := log.CommonLogger{}
-	logger.Dummy()
-
     req, err := http.NewRequest("GET", "http://" + debug_addr + "/debug", nil)
     if err != nil {
         panic(err)

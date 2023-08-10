@@ -6,6 +6,7 @@ import (
 
 
 type Template struct {
+	logger *log.CommonLogger
 }
 
 type TemplateST struct {
@@ -13,9 +14,9 @@ type TemplateST struct {
     content string
 }
 
-func (template Template) Execute() bool {
+func (t Template) Execute() bool {
 
-	logger := log.CommonLogger{}
+	t.logger = log.GetLogger()
 
 	templateST := []TemplateST{
 {
@@ -92,10 +93,10 @@ Driver=/home/mstr/mysql_odbc/mysql_odbc_8.0.21/lib/libmyodbc8w.so
 
 	   for _, template := range templateST {
 
-			logger.BasicPrint("----------------------")
-			logger.BasicPrint(template.key)
-			logger.BasicPrint("----------------------")
-			logger.BasicPrint(template.content)
+			t.logger.BasicPrint("----------------------")
+			t.logger.BasicPrint(template.key)
+			t.logger.BasicPrint("----------------------")
+			t.logger.BasicPrint(template.content)
 
 	   }
 

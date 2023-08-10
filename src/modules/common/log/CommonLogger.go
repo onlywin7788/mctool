@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"time"
+	"sync"
 )
 
 const (
@@ -12,7 +13,37 @@ const (
 	LOGTYPE_TRACE string = "[TRACE]"
 )
 
+const (
+	LOGLEVEL_INFO  int = 1
+	LOGLEVEL_DEBUG int = 2
+	LOGLEVEL_TRACE int = 3
+)
+
 type CommonLogger struct {
+	loglevel int
+}
+
+var loggerInstance *CommonLogger
+var once sync.Once
+
+func GetLogger() *CommonLogger {
+    once.Do(func() {
+        loggerInstance = &CommonLogger{
+        }
+    })
+    return loggerInstance
+}
+
+func (logger CommonLogger) SetLogLevel(level string) {
+
+	logger.loglevel = LOGLEVEL_INFO
+
+	if level == "debug"{
+		logger.loglevel = LOGLEVEL_DEBUG
+	}
+	if level == "trace"{
+		logger.loglevel = LOGLEVEL_TRACE
+	}
 }
 
 func getTimeStamp() string {
@@ -39,13 +70,6 @@ func (logger CommonLogger) Info(contents string) bool {
 	return true
 }
 
-func (logger CommonLogger) Debug(contents string) bool {
-
-	msg := getFormatString(LOGTYPE_DEBUG, contents)
-	writeLog(msg)
-	return true
-}
-
 func (logger CommonLogger) Error(contents string) bool {
 
 	msg := getFormatString(LOGTYPE_ERROR, contents)
@@ -53,10 +77,23 @@ func (logger CommonLogger) Error(contents string) bool {
 	return true
 }
 
+func (logger CommonLogger) Debug(contents string) bool {
+
+	if logger.loglevel == LOGLEVEL_DEBUG || logger.loglevel == LOGLEVEL_TRACE{
+		msg := getFormatString(LOGTYPE_DEBUG, contents)
+		writeLog(msg)
+	}
+
+	return true
+}
+
 func (logger CommonLogger) Trace(contents string) bool {
 
-	msg := getFormatString(LOGTYPE_TRACE, contents)
-	writeLog(msg)
+	if logger.loglevel == LOGLEVEL_TRACE{
+		msg := getFormatString(LOGTYPE_TRACE, contents)
+		writeLog(msg)
+	}
+
 	return true
 }
 

@@ -2,13 +2,17 @@ package util
 
 import (
 	"net"
+	log "bits/modules/common/log"
 )
 
 type FirewallChecker struct {
+	logger *log.CommonLogger
 }
 
 
-func (firewallChecker FirewallChecker) Execute(addr string) (bool, string) {
+func (f FirewallChecker) Execute(addr string) (bool, string) {
+
+	f.logger = log.GetLogger()
 
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {

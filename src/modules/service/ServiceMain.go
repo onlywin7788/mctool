@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"os"
 	log "bits/modules/common/log"
 	util "bits/modules/util"
@@ -10,12 +9,13 @@ import (
 
 
 type ServiceMain struct {
+	logger *log.CommonLogger
 }
 
-func (serviceMain ServiceMain) Execute() bool{
 
-	logger := log.CommonLogger{}
-	logger.Dummy()
+func (s ServiceMain) Execute() bool{
+
+	s.logger = log.GetLogger()
 
 	commander := command.Commander{}
 	argsParser := ArgsParser{}
@@ -23,9 +23,11 @@ func (serviceMain ServiceMain) Execute() bool{
 	args := os.Args[1:]
 	argsParser.Parser(args)
 
+	s.logger.SetLogLevel(argsParser.LOGLEVEL)
+
 	if argsParser.HELP == 1{
 
-		printHELP()
+		s.printHELP()
 
 	}else if argsParser.DEBUG_SERVER == 1 {
 
@@ -34,23 +36,23 @@ func (serviceMain ServiceMain) Execute() bool{
 	}else if argsParser.CHECK == 1 {
 
 		if argsParser.SYSTEM_CHECK == 1 {
-			CheckSystem(argsParser.DEBUG_CLIENT, argsParser.DEBUG_CLIENT_ADDR)
+			s.checkSystem(argsParser.DEBUG_CLIENT, argsParser.DEBUG_CLIENT_ADDR)
 		}
 		if argsParser.FIREWALL_CHECK == 1 {
-			CheckFirewall(argsParser.FIREWALL_ADDR)
+			s.checkFirewall(argsParser.FIREWALL_ADDR)
 		}
 
 	}else if argsParser.TEMPLATE == 1 {
 	
-		PrintTemplate()
+		s.printTemplate()
 	
 	}else if argsParser.DUMMYSERVER == 1 {
 
-		ListenDummyServer(argsParser.DUMMYSERVER_PORT)
+		s.listenDummyServer(argsParser.DUMMYSERVER_PORT)
 
 	}else{
 
-		logger.BasicPrint("\nInvalid Execute paramter. Please check with '-help'\n")
+		s.logger.BasicPrint("\nInvalid Execute paramter. Please check with '-help'\n")
 
 	}
 
@@ -58,69 +60,63 @@ func (serviceMain ServiceMain) Execute() bool{
 }
 
 
-func CheckSystem(debug_client int, debug_addr string) bool{
+func (s ServiceMain)checkSystem(debug_client int, debug_addr string) bool{
 	
-	logger := log.CommonLogger{}
-	logger.Dummy()
-
 	systemChecker := util.SystemChecker{}
 
-	logger.Info("system checking")
+	s.logger.Info("system checking")
 
 	flag, errMsg := systemChecker.Execute(debug_client, debug_addr)
 
 	if flag == false{
-		logger.Error(errMsg)
+		s.logger.Error(errMsg)
 	}
 	return flag
 }
 
-func CheckFirewall(addr string) bool{
+func (s ServiceMain)checkFirewall(addr string) bool{
 	
-	logger := log.CommonLogger{}
 	firewallChecker := util.FirewallChecker{}
 
-	logger.Info("firewall checking : " + addr)
+	s.logger.Info("firewall checking : " + addr)
 		
 	flag, errMsg := firewallChecker.Execute(addr)
 
 	if flag == true{
-		logger.Info("Firewall opened.")
+		s.logger.Info("Firewall opened.")
 	} else{
-		logger.Error(errMsg)
+		s.logger.Error(errMsg)
 	}
 	return true
 }
 
-func PrintTemplate() bool{
+func (s ServiceMain)printTemplate() bool{
 	
-	logger := log.CommonLogger{}
 	template := util.Template{}
 
-	logger.Info("Print Template Configuration")
+	s.logger.Info("Print Template Configuration")
 	template.Execute()
 
 	return true
 }
 
-func ListenDummyServer(port string) bool{
+func (s ServiceMain)listenDummyServer(port string) bool{
 
-	logger := log.CommonLogger{}
 	dummyServer := util.DummyServer{}
 
-	logger.Info("Dummy Server Listen - Port : " + port)
+	s.logger.Info("Dummy Server Listen - Port : " + port)
 	flag, errMsg := dummyServer.Execute(port)
 	if flag == false{
-		logger.Error(errMsg)
+		s.logger.Error(errMsg)
 	} 
 	return true
 }
 
-func printHELP() bool{
+func (s ServiceMain)printHELP() bool{
 	
 	argsParser := ArgsParser{}
 	content := argsParser.PrintHELP()
-	fmt.Println(content)
+	s.logger.BasicPrint(content)
 
 	return true
 }

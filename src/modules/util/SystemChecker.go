@@ -9,6 +9,7 @@ import (
 )
 
 type SystemChecker struct {
+	logger *log.CommonLogger
 }
 
 type JsonResult struct { 
@@ -26,9 +27,9 @@ type Command struct {
 }
 
 
-func (systemChecker SystemChecker) Execute(debug_client int, debug_addr string) (bool, string) {
+func (s SystemChecker) Execute(debug_client int, debug_addr string) (bool, string) {
 
-	logger := log.CommonLogger{}
+	s.logger = log.GetLogger()
 	commander := command.Commander{}
 
 
@@ -47,44 +48,41 @@ func (systemChecker SystemChecker) Execute(debug_client int, debug_addr string) 
 		{"rpm", "rpm -qa", "RPM List Checking"},
     }
 
-	logger.BasicPrint("\n")
+	s.logger.BasicPrint("\n")
 	for _, command := range commands {
 
-		logger.BasicPrint("|| " + command.desc + "  --------------------")
+		s.logger.BasicPrint("|| " + command.desc + "  --------------------")
 		
 		flag, result := commander.Execute(command.command, debug_client, debug_addr)
 
 		if flag == true{
-			ParseResult(command.key, result)
+			s.parseResult(command.key, result)
 		}
 	}
 
 	return true, ""
 }
 
-func ParseResult(key string, result string){
-	
-	logger := log.CommonLogger{}
-	logger.Dummy()
+func (s SystemChecker) parseResult(key string, result string){
 
 	var parseVal map[string]interface{}
 	if err := json.Unmarshal([]byte(result), &parseVal); err != nil {
 		panic(err)
 	}
 
-	content := valueFromKey(parseVal, "content")
+	content := s.valueFromKey(parseVal, "content")
 
 	if key == "rpm" {
-		checkRPMList(content)
+		s.checkRPMList(content)
 	} else{
-		logger.BasicPrint(content)
+		s.logger.BasicPrint(content)
 	}
 
-	logger.BasicPrint("\n")
+	s.logger.BasicPrint("\n")
 }
 
 
-func valueFromKey(r map[string]interface{}, key ...string) string {
+func (s SystemChecker) valueFromKey(r map[string]interface{}, key ...string) string {
 	if len(key) == 1 {
 		return r[key[0]].(string)
 	} else if len(key) == 2 {
@@ -96,7 +94,7 @@ func valueFromKey(r map[string]interface{}, key ...string) string {
 }
 
 
-func checkRPMList(result string) bool{
+func (s SystemChecker) checkRPMList(result string) bool{
 
 	isFind := false
 	findString := "[OK] "

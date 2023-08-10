@@ -17,11 +17,13 @@ package service
 
 import (
 	_ "fmt"
+	"strings"
 	log "bits/modules/common/log"
 )
 
 type ArgsParser struct {
 	HELP int
+	LOGLEVEL string
 	CHECK int
 	SYSTEM_CHECK int
 	FIREWALL_CHECK int
@@ -39,14 +41,15 @@ func (argsParser ArgsParser) PrintHELP() string {
 
 	helpContents :=
 `
-Usage:
+[Usage]
 -check -system                  Checking MicroStrategy Installation Enviroment (Linux Only)
 -check -firewall IP:PORT        Firewall check   ex) -check firewall 10.10.10.10:34952
--server 34952                   Dummy Server Listen (Purpose checking firewall)
+-server PORT 	                Dummy Server Listen (Purpose checking firewall)
 -template                       Printing Template Contents for MicroStrategy configiration
+-logelvel={info/debug/trace}	Changing Loglevel (default : info)
 
 
-[Hidden usage / Deveopment-Only]
+[Hidden usage / Development-Only]
 -debug_server PORT              Start remote Debugging Server (Windows - Linux Cross Debugging)
 -debug_client IP:PORT           Client Debugging   ex) -check -system -debug_client 10.10.10.10:18080
 `
@@ -57,6 +60,7 @@ func (argsParser *ArgsParser) Parser(args []string) bool {
 
 	// init
 	argsParser.HELP = 0
+	argsParser.LOGLEVEL = "info"
 	argsParser.TEMPLATE = 0
 	argsParser.DUMMYSERVER = 0
 	argsParser.DUMMYSERVER_PORT = ""
@@ -106,6 +110,15 @@ func (argsParser *ArgsParser) Parser(args []string) bool {
         if arg == "-debug_client"{
 			argsParser.DEBUG_CLIENT = 1
 			argsParser.DEBUG_CLIENT_ADDR = args[idx+1]
+		}
+		idx++
+    }
+
+	idx = 0
+	for _, arg := range args {
+        if strings.Contains(arg, "-loglevel="){
+			token := strings.Split(arg, "=")
+			argsParser.LOGLEVEL = token[1]
 		}
 		idx++
     }
